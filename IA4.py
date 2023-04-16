@@ -33,6 +33,17 @@ def readCSVData(fileName):
     return dataList
 
 
+def normalize(data):
+    for col in data.T:
+        min = np.min(col)
+        max = np.max(col)
+        for i in col:
+            i = (i - min)/(max - min)
+
+def distance(item1, item2):
+    return np.linalg.norm(item1 - item2)
+
+
 def driver():
     testData = []
     trainData = []
