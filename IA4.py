@@ -32,17 +32,121 @@ def readCSVData(fileName):
             dataList.append(row)
     return dataList
 
-
 def normalize(data):
-    for col in data.T:
+    """    
+    Function:   normalize
+    Descripion: normalizes all data in the given matrix column by column
+    Input:      data - any numpy matrix
+    Output:     dataCopy - normalized matrix
+    """
+    dataCopy = np.copy(data)
+    for col in dataCopy.T:
         min = np.min(col)
         max = np.max(col)
         for i in col:
             i = (i - min)/(max - min)
+    return dataCopy
 
 def distance(item1, item2):
+    """    
+    Function:   distance
+    Descripion: calculates distance between two points
+    Input:      item1 - start location for distance
+                item2 - end location for distance
+    Output:     np.linalg.norm(item1 - item2)
+    """
+
     return np.linalg.norm(item1 - item2)
 
+def kNearest(k, point, data, labels):
+    """    
+    Function:   kNearest
+    Descripion: calculates the k nearest neigbors to the given point
+    Input:      k - number of nearest points 
+                point - given point to calculate the k nearest of
+                data - the data
+                labels - label of each data point
+    Output:     minDistances - a list of distances to k nearest points
+                minLabels - the classification of the k nearest points
+    """
+    distanceList = []
+    labelCopy = np.copy(labels)
+    minDistances = []
+    minLabels = []
+
+    for i in data:
+        distanceList.append(distance(point, i))
+    for i in range(k):
+        minimum = min(distanceList)
+        for i in range(len(distanceList)):
+            if distanceList[i] == minimum:
+                minDistances.append(distanceList[i])
+                minLabels.append(labelCopy[i])
+                del distanceList[i]
+                labelCopy = np.delete(labelCopy, i, 0) # might need to be axis 1
+
+    return minDistances, minLabels
+
+def voting(distances, labels):
+    """    
+    Function:   voting
+    Descripion: decides classification based on returns from k nearest function
+    Input:      distances - a list of distances to k nearest points
+                labels - the classification of the k nearest points
+    Output:     1 or -1 based on voting scheme
+    """
+    sum = 0
+    for i in range(len(distances)):
+        sum = sum + 1/distances[i] * labels[i]
+    if sum > 0:
+        return 1
+    else:
+        return -1
+
+def kNearestDecide(k, point, data, labels):
+    """    
+    Function:   kNearestDecide
+    Descripion: decides classification  for the entered point
+    Input:      k - the number of neighbors to classify by
+                point - data to classify
+                data - dataset to classify by
+                labels - the ckass labels of the data
+    Output:     1 or -1 based on voting scheme
+    """
+    normData = normalize(data)
+    kDistances, kLabels = kNearest(k, point, normData, labels)
+    return voting(kDistances, kLabels)
+
+def Error(Y, Y_predict):
+    """    
+    Function:   Error
+    Descripion: calculates the error of a given prediction set
+    Input:      Y - the actual classification data
+                Y_predict - the predicted values
+    Output:     1 - (correct/len(Y.T)) - Error calculation
+    """
+    correct = 0
+    for num in range(0,len(Y.T)):
+        if int(Y[0, num]) == Y_predict[0, num]:
+            correct += 1
+    
+    return 1 - (correct/len(Y.T)) 
+
+def KNN_SSE(k, trainingSet, trainingLabels, testingSet, testingLabels):
+    """    
+    Function:   KNN_SSE
+    Descripion: calculates the SSE of a given KNN scheme
+    Input:      k - the number of neighbors to classify by
+                trainingSet - the set to train KNN of
+                traingingLabels - the class labels of the training data
+                testingSet - the set to test KNN on
+                testingLabels - the class labels of the testing set
+    Output:     Error(testingLabels, calculatedLabels) - error of predicted classification
+    """
+    calculatedLabels = []
+    for i in range(len(testingSet)):
+        calculatedLabels.append(kNearestDecide(k, testingSet[i], trainingSet, trainingLabels))
+    return Error(testingLabels, calculatedLabels)
 
 def driver():
     testData = []
@@ -81,6 +185,8 @@ def driver():
     numTestFeatures =  len(testFeatures)
     testOutput = testOutput.reshape(numTestFeatures,1)
     numTrainFeatures = len(trainFeatures)
-   
+
+    print(KNN_SSE(1, trainFeatures, trainOutput, trainFeatures, trainOutput))
+    print(KNN_SSE(1, trainFeatures, trainOutput, testFeatures, testOutput))
 
 driver()
