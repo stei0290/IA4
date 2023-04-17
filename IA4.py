@@ -2,7 +2,7 @@
 
 #CONSTANTS
 import csv
-
+import math as math
 import numpy as np
 
 
@@ -46,10 +46,10 @@ def normalize(train, predict):
     for col in range(trainCopy.shape[1]):
         min = np.min(trainCopy.T[:][col])
         max = np.max(trainCopy.T[:][col])
-        for i in range(len(trainCopy[:][col])):
+        for i in range(len(trainCopy.T[:][col])):
             norm = (trainCopy[i][col] - min)/(max - min)
             trainCopy[i][col] = norm
-        for i in range(len(predictCopy[:][col])):
+        for i in range(len(predictCopy.T[:][col])):
             norm = (predictCopy[i][col] - min)/(max - min)
             predictCopy[i][col] = norm
 
@@ -106,8 +106,9 @@ def voting(distances, labels):
     """
     sum = 0
     for i in range(len(distances)):
-        sum = sum + 1/distances[i] * labels[i]
-    if sum > 0:
+        #sum = sum + math.exp(-2 * distances[i]) * int(labels[i])
+        sum = sum + int(labels[i])
+    if sum >= 0:
         return 1
     else:
         return -1
@@ -157,6 +158,41 @@ def KNN_SSE(k, trainingSet, trainingLabels, testingSet, testingLabels):
         calculatedLabels.append(kNearestDecide(k, normTraining[i], normTesting, trainingLabels))
     return Error(testingLabels, calculatedLabels)
 
+def KCrossVal(KFolds, kNeigh, data, labels):
+    """
+    Function:    KCrossVAl
+    Description: Preforms K-Fold Cross validation, splitting the data into K
+                 indices and calculating the SSE using each set as the
+                 valudation set, returning the average of each SSE
+    Input:       KFolds - number of indices
+                 kNeigh - number of neighbors for knn
+                 data - the matrix containing the features
+                 labels - the array containing the labels
+    Output:      Average of SSE for each fold.
+    """
+    secSize = math.ceil(len(data)/KFolds)
+    errors = []
+   
+    for i in range(KFolds):
+        dataCopy = np.copy(data)
+        labelCopy = np.copy(labels)
+       
+        valDSet = []
+        valLSet = []
+        for j in range(i*secSize, i*secSize+secSize-1):
+            if j < len(dataCopy) - 1:
+                valDSet.append(dataCopy[j])
+                valLSet.append(labelCopy[j])
+           
+                dataCopy = np.delete(dataCopy, i*secSize, 0)
+                labelCopy = np.delete(labelCopy, i*secSize, 0)
+        valDSet = np.array(valDSet)
+        valLSet = np.array(valLSet)
+        SSE = KNN_SSE(kNeigh, dataCopy, labelCopy.T, valDSet, valLSet.T)
+        errors.append(SSE)
+
+    return 1/KFolds * sum(errors)
+
 def driver():
     testData = []
     trainData = []
@@ -198,7 +234,16 @@ def driver():
     for i in range(5):
         print(2*i +1, ':')
         print(KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T))
+        print(KCrossVal(5, 2*i + 1, trainFeatures, trainOutput))
         print(KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, testFeatures, testOutput.T))
         print()
+
+    print(KNN_SSE(280, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T))
+    print(KNN_SSE(280, trainFeatures, trainOutput.T, testFeatures, testOutput.T))
+
+
+
+
+    
 
 driver()
