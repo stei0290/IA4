@@ -32,21 +32,23 @@ def readCSVData(fileName):
             dataList.append(row)
     return dataList
 
-def normalize(data):
+def normalize(data, point):
     """    
     Function:   normalize
     Descripion: normalizes all data in the given matrix column by column
     Input:      data - any numpy matrix
     Output:     dataCopy - normalized matrix
     """
+    pointCopy = point
     dataCopy = np.copy(data)
     for col in range(dataCopy.shape[1]):
         min = np.min(dataCopy.T[:][col])
         max = np.max(dataCopy.T[:][col])
+        pointCopy[col] = (point[col] - min)/(max - min) 
         for i in range(len(dataCopy[:][col])):
-            norm = (col[i] - min)/(max - min)
+            norm = (dataCopy[i][col] - min)/(max - min)
             dataCopy[i][col] = norm
-    return dataCopy
+    return dataCopy, pointCopy
 
 def distance(item1, item2):
     """    
@@ -115,8 +117,8 @@ def kNearestDecide(k, point, data, labels):
                 labels - the ckass labels of the data
     Output:     1 or -1 based on voting scheme
     """
-    normData = normalize(data)
-    kDistances, kLabels = kNearest(k, point, normData, labels)
+    normData, pointCopy = normalize(data, point)
+    kDistances, kLabels = kNearest(k, pointCopy, normData, labels)
     return voting(kDistances, kLabels)
 
 def Error(Y, Y_predict):
