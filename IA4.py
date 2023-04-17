@@ -40,11 +40,12 @@ def normalize(data):
     Output:     dataCopy - normalized matrix
     """
     dataCopy = np.copy(data)
-    for col in dataCopy.T:
-        min = np.min(col)
-        max = np.max(col)
-        for i in col:
-            i = (i - min)/(max - min)
+    for col in range(dataCopy.shape[1]):
+        min = np.min(dataCopy.T[:][col])
+        max = np.max(dataCopy.T[:][col])
+        for i in range(len(dataCopy[:][col])):
+            norm = (col[i] - min)/(max - min)
+            dataCopy[i][col] = norm
     return dataCopy
 
 def distance(item1, item2):
@@ -187,7 +188,7 @@ def driver():
     testOutput = testOutput.reshape(numTestFeatures,1)
     numTrainFeatures = len(trainFeatures)
 
-    print(KNN_SSE(1, trainFeatures, trainOutput, trainFeatures, trainOutput))
+    print(KNN_SSE(1, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T))
     print(KNN_SSE(1, trainFeatures, trainOutput, testFeatures, testOutput))
 
 driver()
