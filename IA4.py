@@ -131,8 +131,10 @@ def Error(Y, Y_predict):
     """
     correct = 0
     for num in range(0,len(Y.T)):
-        if int(Y[0, num]) == Y_predict[0, num]:
+        if int(Y[0, num]) == int(Y_predict[num]):
             correct += 1
+        else:
+            print (num)
     
     return 1 - (correct/len(Y.T)) 
 
@@ -191,6 +193,6 @@ def driver():
     numTrainFeatures = len(trainFeatures)
 
     print(KNN_SSE(1, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T))
-    print(KNN_SSE(1, trainFeatures, trainOutput, testFeatures, testOutput))
+    print(KNN_SSE(1, trainFeatures, trainOutput.T, testFeatures, testOutput.T))
 
 driver()
