@@ -73,7 +73,7 @@ def kNearest(k, point, data, labels):
                 minLabels - the classification of the k nearest points
     """
     distanceList = []
-    labelCopy = list(np.copy(labels))
+    labelCopy = list(labels.T)
     minDistances = []
     minLabels = []
 
