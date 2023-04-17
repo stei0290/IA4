@@ -32,23 +32,28 @@ def readCSVData(fileName):
             dataList.append(row)
     return dataList
 
-def normalize(data, point):
+def normalize(train, predict):
     """    
     Function:   normalize
     Descripion: normalizes all data in the given matrix column by column
-    Input:      data - any numpy matrix
+    Input:      train - the training data of the set
+                test - the testing data of the set
     Output:     dataCopy - normalized matrix
     """
-    pointCopy = point
-    dataCopy = np.copy(data)
-    for col in range(dataCopy.shape[1]):
-        min = np.min(dataCopy.T[:][col])
-        max = np.max(dataCopy.T[:][col])
-        pointCopy[col] = (point[col] - min)/(max - min) 
-        for i in range(len(dataCopy[:][col])):
-            norm = (dataCopy[i][col] - min)/(max - min)
-            dataCopy[i][col] = norm
-    return dataCopy, pointCopy
+    trainCopy = np.copy(train)
+    predictCopy = np.copy(predict)
+
+    for col in range(trainCopy.shape[1]):
+        min = np.min(trainCopy.T[:][col])
+        max = np.max(trainCopy.T[:][col])
+        for i in range(len(trainCopy[:][col])):
+            norm = (trainCopy[i][col] - min)/(max - min)
+            trainCopy[i][col] = norm
+        for i in range(len(predictCopy[:][col])):
+            norm = (predictCopy[i][col] - min)/(max - min)
+            predictCopy[i][col] = norm
+
+    return trainCopy, predictCopy
 
 def distance(item1, item2):
     """    
@@ -117,8 +122,7 @@ def kNearestDecide(k, point, data, labels):
                 labels - the ckass labels of the data
     Output:     1 or -1 based on voting scheme
     """
-    normData, pointCopy = normalize(data, point)
-    kDistances, kLabels = kNearest(k, pointCopy, normData, labels)
+    kDistances, kLabels = kNearest(k, point, data, labels)
     return voting(kDistances, kLabels)
 
 def Error(Y, Y_predict):
@@ -133,8 +137,6 @@ def Error(Y, Y_predict):
     for num in range(0,len(Y.T)):
         if int(Y[0, num]) == int(Y_predict[num]):
             correct += 1
-        else:
-            print (num)
     
     return 1 - (correct/len(Y.T)) 
 
@@ -150,8 +152,9 @@ def KNN_SSE(k, trainingSet, trainingLabels, testingSet, testingLabels):
     Output:     Error(testingLabels, calculatedLabels) - error of predicted classification
     """
     calculatedLabels = []
+    normTraining, normTesting = normalize (trainingSet, testingSet)
     for i in range(len(testingSet)):
-        calculatedLabels.append(kNearestDecide(k, testingSet[i], trainingSet, trainingLabels))
+        calculatedLabels.append(kNearestDecide(k, normTraining[i], normTesting, trainingLabels))
     return Error(testingLabels, calculatedLabels)
 
 def driver():
@@ -192,7 +195,10 @@ def driver():
     testOutput = testOutput.reshape(numTestFeatures,1)
     numTrainFeatures = len(trainFeatures)
 
-    print(KNN_SSE(1, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T))
-    print(KNN_SSE(1, trainFeatures, trainOutput.T, testFeatures, testOutput.T))
+    for i in range(5):
+        print(2*i +1, ':')
+        print(KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T))
+        print(KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, testFeatures, testOutput.T))
+        print()
 
 driver()
