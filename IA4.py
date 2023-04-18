@@ -4,6 +4,9 @@
 import csv
 import math as math
 import numpy as np
+import sympy as sp
+import matplotlib.pyplot as plt
+sp.init_printing(use_unicode=True, use_latex='mathjax')
 
 
 TRAIN_FILE = 'knn_train.csv'
@@ -194,10 +197,18 @@ def KCrossVal(KFolds, kNeigh, data, labels):
     return 1/KFolds * sum(errors)
 
 def driver():
+    K_VALUE = 14
+
+
     testData = []
     trainData = []
     trainOutput = []
     testOutput = []
+
+    knnSSEArr = []
+    crossValArr = []
+    trainSSEArr = []
+    kValueArr = []
 
     testLabel_Index = 0
     trainLabel_Index = 0
@@ -231,18 +242,58 @@ def driver():
     testOutput = testOutput.reshape(numTestFeatures,1)
     numTrainFeatures = len(trainFeatures)
 
-    for i in range(5):
+    for i in range(K_VALUE):
         print(2*i +1, ':')
-        print(KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T))
-        print(KCrossVal(5, 2*i + 1, trainFeatures, trainOutput))
-        print(KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, testFeatures, testOutput.T))
+        knnSSE = KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T)
+        knnSSEArr.append(knnSSE)
+        print(f"KNN SSE: {knnSSE}")
+        kCrossVal = KCrossVal(5, 2*i + 1, trainFeatures, trainOutput)
+        crossValArr.append(kCrossVal)
+        print(f"Cross Validation Error: {kCrossVal}")
+        trainSSE = KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, testFeatures, testOutput.T)
+        trainSSEArr.append(trainSSE)
+        print(f"Train SSE: {trainSSE}")
+        kValueArr.append(i*2 + 1)
         print()
 
     print(KNN_SSE(280, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T))
     print(KNN_SSE(280, trainFeatures, trainOutput.T, testFeatures, testOutput.T))
 
+    # plt.plot(kValueArr, knnSSEArr, 'k-', label="KNN SSE ")
+    # plt.plot(kValueArr,crossValArr, 'b-', label="Cross Validation SSE" )
+    # plt.plot(kValueArr, trainSSEArr, 'r-', label="Train SSE")
+    # plt.xlabel("K-Value")
+    # plt.legend(loc='lower right')
+    # plt.show()
 
 
+    figure, axis = plt.subplots(2,2)
+
+    axis[0,0].plot(kValueArr, knnSSEArr, 'k-')
+    axis[0,0].set_title("KNN SSE")
+
+    axis[0,1].plot(kValueArr,crossValArr, 'b-')
+    axis[0,1].set_title("Cross Validation SSE")
+
+    axis[1,0].plot(kValueArr, trainSSEArr, 'r-', label="Train SSE")
+    axis[1,0].set_title("Train SSE")
+
+    plt.show()
+
+
+# figure, axis = plt.subplots(2, 2)
+  
+# # For Sine Function
+# axis[0, 0].plot(X, Y1)
+# axis[0, 0].set_title("Sine Function")
+  
+# # For Cosine Function
+# axis[0, 1].plot(X, Y2)
+# axis[0, 1].set_title("Cosine Function")
+  
+# # For Tangent Function
+# axis[1, 0].plot(X, Y3)
+# axis[1, 0].set_title("Tangent Function")
 
     
 
