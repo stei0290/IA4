@@ -46,20 +46,25 @@ def normalize(train, predict):
     trainCopy = np.copy(train)
     predictCopy = np.copy(predict)
 
+    normTrain = np.empty ([train.shape[0], train.shape[1]], dtype= float)
+    normPredict = np.empty ([predict.shape[0], predict.shape[1]], dtype= float)
+
     for col in range(trainCopy.shape[1]):
-        low = np.min(trainCopy.T[:][col])
-        high = np.max(trainCopy.T[:][col])
+        low = float (np.min(trainCopy.T[:][col]))
+        high = float (np.max(trainCopy.T[:][col]))
         for i in range(len(trainCopy.T[:][col])):
-            norm = (trainCopy[i][col] - low)/(high - low)
-            trainCopy[i][col] = norm
+            norm = float((float(trainCopy[i][col]) - low)/(high - low))
+            normTrain[i][col] = norm
+
+
     for col in range(predictCopy.shape[1]):
         low = np.min(predictCopy.T[:][col])
         high = np.max(predictCopy.T[:][col])     
         for i in range(len(predictCopy.T[:][col])):
             norm = (predictCopy[i][col] - low)/(high - low)
-            predictCopy[i][col] = norm
+            normPredict[i][col] = norm
 
-    return trainCopy, predictCopy
+    return normTrain, normPredict
 
 def distance(item1, item2):
     """    
@@ -164,6 +169,7 @@ def KNN_SSE(k, trainingSet, trainingLabels, testingSet, testingLabels):
     normTraining, normTesting = normalize (trainingSet, testingSet)
     for i in range(len(testingSet)):
         calculatedLabels.append(kNearestDecide(k, normTraining[i], normTesting, trainingLabels))
+    #print(calculatedLabels);
     return Error(testingLabels, calculatedLabels)
 
 def KCrossVal(KFolds, kNeigh, data, labels):
@@ -202,8 +208,7 @@ def KCrossVal(KFolds, kNeigh, data, labels):
     return 1/KFolds * sum(errors)
 
 def driver():
-    K_VALUE = 30
-
+    K_VALUE = 10
 
     testData = []
     trainData = []
@@ -247,8 +252,14 @@ def driver():
     testOutput = testOutput.reshape(numTestFeatures,1)
     numTrainFeatures = len(trainFeatures)
 
+   # print(trainOutput)
+   # print(trainFeatures)
+
+    #trainFeatures = np.array ([[1,1], [1,2], [1,3], [2,1], [2,2], [2,3], [3,1], [3,2], [3,3], [3,4], [4,1], [4,2], [4,3], [4,4]])
+    #trainOutput = np.array ([[1],     [1],   [1],   [1],   [1],   [1],   [-1],  [1],   [-1],  [-1],  [-1],  [-1],  [-1],  [-1]])
+
     for i in range(K_VALUE):
-    #if K_VALUE == 14:
+    #if K_VALUE == 2:
         #i = K_VALUE
         print(2*i +1, ':')
         trainSSE = KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T)
