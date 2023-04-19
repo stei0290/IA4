@@ -47,13 +47,16 @@ def normalize(train, predict):
     predictCopy = np.copy(predict)
 
     for col in range(trainCopy.shape[1]):
-        min = np.min(trainCopy.T[:][col])
-        max = np.max(trainCopy.T[:][col])
+        low = np.min(trainCopy.T[:][col])
+        high = np.max(trainCopy.T[:][col])
         for i in range(len(trainCopy.T[:][col])):
-            norm = (trainCopy[i][col] - min)/(max - min)
+            norm = (trainCopy[i][col] - low)/(high - low)
             trainCopy[i][col] = norm
+    for col in range(predictCopy.shape[1]):
+        low = np.min(predictCopy.T[:][col])
+        high = np.max(predictCopy.T[:][col])     
         for i in range(len(predictCopy.T[:][col])):
-            norm = (predictCopy[i][col] - min)/(max - min)
+            norm = (predictCopy[i][col] - low)/(high - low)
             predictCopy[i][col] = norm
 
     return trainCopy, predictCopy
@@ -88,13 +91,15 @@ def kNearest(k, point, data, labels):
     for i in data:
         distanceList.append(distance(point, i))
     for i in range(k):
+        if i >= data.shape[0] - 1:
+            break
         minimum = min(distanceList)
-        for i in range(len(distanceList)):
-            if distanceList[i] == minimum:
-                minDistances.append(distanceList[i])
-                minLabels.append(labelCopy[i])
-                del distanceList[i]
-                del labelCopy[i] # might need to be axis 1
+        for l in range(len(distanceList)):
+            if distanceList[l] == minimum:
+                minDistances.append(distanceList[l])
+                minLabels.append(labelCopy[l])
+                del distanceList[l]
+                del labelCopy[l] # might need to be axis 1
                 break
 
     return minDistances, minLabels
@@ -197,7 +202,7 @@ def KCrossVal(KFolds, kNeigh, data, labels):
     return 1/KFolds * sum(errors)
 
 def driver():
-    K_VALUE = 14
+    K_VALUE = 30
 
 
     testData = []
@@ -205,7 +210,7 @@ def driver():
     trainOutput = []
     testOutput = []
 
-    knnSSEArr = []
+    testSSEArr = []
     crossValArr = []
     trainSSEArr = []
     kValueArr = []
@@ -243,25 +248,27 @@ def driver():
     numTrainFeatures = len(trainFeatures)
 
     for i in range(K_VALUE):
+    #if K_VALUE == 14:
+        #i = K_VALUE
         print(2*i +1, ':')
-        knnSSE = KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T)
-        knnSSEArr.append(knnSSE)
-        print(f"KNN SSE: {knnSSE}")
+        trainSSE = KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T)
+        trainSSEArr.append(trainSSE)
+        print(f"KNN SSE: {trainSSE}")
         kCrossVal = KCrossVal(5, 2*i + 1, trainFeatures, trainOutput)
         crossValArr.append(kCrossVal)
         print(f"Cross Validation Error: {kCrossVal}")
-        trainSSE = KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, testFeatures, testOutput.T)
-        trainSSEArr.append(trainSSE)
-        print(f"Train SSE: {trainSSE}")
+        testSSE = KNN_SSE(2*i + 1, trainFeatures, trainOutput.T, testFeatures, testOutput.T)
+        testSSEArr.append(testSSE)
+        print(f"Test SSE: {testSSE}")
         kValueArr.append(i*2 + 1)
         print()
 
     print(KNN_SSE(280, trainFeatures, trainOutput.T, trainFeatures, trainOutput.T))
     print(KNN_SSE(280, trainFeatures, trainOutput.T, testFeatures, testOutput.T))
 
-    # plt.plot(kValueArr, knnSSEArr, 'k-', label="KNN SSE ")
+    # plt.plot(kValueArr, trainSSEArr, 'k-', label="Training SSE ")
     # plt.plot(kValueArr,crossValArr, 'b-', label="Cross Validation SSE" )
-    # plt.plot(kValueArr, trainSSEArr, 'r-', label="Train SSE")
+    # plt.plot(kValueArr, testSSEArr, 'r-', label="Test SSE")
     # plt.xlabel("K-Value")
     # plt.legend(loc='lower right')
     # plt.show()
@@ -269,14 +276,14 @@ def driver():
 
     figure, axis = plt.subplots(2,2)
 
-    axis[0,0].plot(kValueArr, knnSSEArr, 'k-')
-    axis[0,0].set_title("KNN SSE")
+    axis[0,0].plot(kValueArr, trainSSEArr, 'k-')
+    axis[0,0].set_title("Training SSE")
 
     axis[0,1].plot(kValueArr,crossValArr, 'b-')
     axis[0,1].set_title("Cross Validation SSE")
 
-    axis[1,0].plot(kValueArr, trainSSEArr, 'r-', label="Train SSE")
-    axis[1,0].set_title("Train SSE")
+    axis[1,0].plot(kValueArr, testSSEArr, 'r-', label="Test SSE")
+    axis[1,0].set_title("Testing SSE")
 
     plt.show()
 
@@ -294,7 +301,5 @@ def driver():
 # # For Tangent Function
 # axis[1, 0].plot(X, Y3)
 # axis[1, 0].set_title("Tangent Function")
-
-    
 
 driver()
