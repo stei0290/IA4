@@ -168,7 +168,7 @@ def KNN_SSE(k, trainingSet, trainingLabels, testingSet, testingLabels):
     calculatedLabels = []
     normTraining, normTesting = normalize (trainingSet, testingSet)
     for i in range(len(testingSet)):
-        calculatedLabels.append(kNearestDecide(k, normTraining[i], normTesting, trainingLabels))
+        calculatedLabels.append(kNearestDecide(k, normTesting[i], normTraining, trainingLabels))
     #print(calculatedLabels);
     return Error(testingLabels, calculatedLabels)
 
@@ -252,8 +252,8 @@ def driver():
     testOutput = testOutput.reshape(numTestFeatures,1)
     numTrainFeatures = len(trainFeatures)
 
-   # print(trainOutput)
-   # print(trainFeatures)
+    print(testOutput)
+    print(testFeatures)
 
     #trainFeatures = np.array ([[1,1], [1,2], [1,3], [2,1], [2,2], [2,3], [3,1], [3,2], [3,3], [3,4], [4,1], [4,2], [4,3], [4,4]])
     #trainOutput = np.array ([[1],     [1],   [1],   [1],   [1],   [1],   [-1],  [1],   [-1],  [-1],  [-1],  [-1],  [-1],  [-1]])
